@@ -31,51 +31,42 @@ var requestHandler = function(request, response) {
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
+
+  var defaultCorsHeaders = {
+    'access-control-allow-origin': '*',
+    'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, accept',
+    'access-control-max-age': 10 // Seconds.
+  };
+ 
   var headers = defaultCorsHeaders;
-  //response.setHeader('Content-Type', 'application/json');
+  // response.setHeader('Content-Type', 'application/json');
   // The outgoing status.
-  //request error
-  var statusCode = 404; 
+  // request error
   if (request.on('error', function(error) {
-        statusCode = 400; 
-        response.writeHead(statusCode, headers);
-        response.end(error);
+    statusCode = 404; 
+    response.writeHead(statusCode, headers);
+    response.end(error);
   }));
-    if (request.url === '/classes/messages' && request.method === 'GET') {
+  if (request.url === '/classes/messages' && request.method === 'GET') {
     statusCode = 200; 
     response.writeHead(statusCode, headers);
     response.end(JSON.stringify(responseBody)); 
-    } 
-    if (request.url === '/classes/messages' && request.method === 'POST') {
-      statusCode = 201; 
-      response.writeHead(statusCode, headers);
-      request.on('data', (chunk) => {responseBody.results.push(JSON.parse(chunk))}).on('end', JSON.stringify(responseBody));
-      response.end(JSON.stringify(responseBody));
-      
-    } 
-       
-      
-  
-    // const { headers, method, url } = request; 
-    // let body = [];
-    // request.on('error', (err) => {
-    //   console.error(err);
-    // }).on('data', (chunk) => {
-    //   body.push(chunk);
-    // }).on('end', () => {
-    //   body = Buffer.concat(body).toString();
-    // });
-    // BEGINNING OF NEW STUFF
-
-    // response.on('error', (err) => {
-    //   console.error(err);
-    // });
-    
-    //
-    
+  } 
+  if (request.url === '/classes/messages' && request.method === 'POST') {
+    statusCode = 201; 
     response.writeHead(statusCode, headers);
     
-    response.end(JSON.stringify(responseBody));
+    request.on('data', (chunk) => { responseBody.results.push(JSON.parse(chunk))}).on('end', () => {
+      
+      response.end(JSON.stringify(responseBody));
+    });
+  } 
+  if (request.url !== '/classes/messages') {
+    statusCode = 404; 
+    response.writeHead(statusCode, headers);
+    response.end();
+  }
 }
  
   
@@ -117,12 +108,7 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
-var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
-};
+
 
 exports.requestHandler = requestHandler;
 
