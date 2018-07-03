@@ -14,6 +14,22 @@ this file and include it in basic-server.js so that it actually works.
 
 var responseBody = {};
 responseBody.results = [];
+var objectId = 1;
+// hard-coding some data
+var fakeData1 = {'objectId': 0,
+   'username':'Enji',
+   'text':'Hi there',
+   'roomname':'DaRoom'
+};
+
+var fakeData2 = {'objectId': 1,
+   'username':'JP',
+   'text':'Yo',
+   'roomname':'DaRoom2'
+};
+
+responseBody.results.push(fakeData1);
+responseBody.results.push(fakeData2);
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -43,11 +59,16 @@ var requestHandler = function(request, response) {
   // response.setHeader('Content-Type', 'application/json');
   // The outgoing status.
   // request error
-  if (request.on('error', function(error) {
+  headers['Content-Type'] = 'application/json';
+  if (request.method === 'OPTIONS') {
+    response.writeHead(200, headers);
+    response.end('OPTIONS SUCCESS');
+  }
+  request.on('error', function(error) {
     statusCode = 404; 
     response.writeHead(statusCode, headers);
     response.end(error);
-  }));
+  });
   if (request.url === '/classes/messages' && request.method === 'GET') {
     statusCode = 200; 
     response.writeHead(statusCode, headers);
@@ -57,42 +78,44 @@ var requestHandler = function(request, response) {
     statusCode = 201; 
     response.writeHead(statusCode, headers);
     
-    request.on('data', (chunk) => { responseBody.results.push(JSON.parse(chunk))}).on('end', () => {
-      
-      response.end(JSON.stringify(responseBody));
-    });
+    request.on('data', (chunk) => { 
+      console.log(chunk);
+      var jsonChunk = JSON.parse(chunk);  
+      objectId++; 
+      jsonChunk.objectId = objectId; 
+      responseBody.results.push(jsonChunk); }).on('end', () => {
+      response.end(JSON.stringify(responseBody));}); // callback function is required given node's asynchronous nature
+    
   } 
   if (request.url !== '/classes/messages') {
     statusCode = 404; 
     response.writeHead(statusCode, headers);
     response.end();
   }
-}
+};
  
   
-  // response.writeHead(200, {'Content-Type': 'application/json'})
-  // See the note below about CORS headers.
-  
+// See the note below about CORS headers.
 
-  // Tell the client we are sending them plain text.
-  //
-  // You will need to change this if you are sending something
-  // other than plain text, like JSON or HTML.
-  //  headers['Content-Type'] = 'text/plain';
-
-  
-
-  // .writeHead() writes to the request line and headers of the response,
-  // which includes the status and all headers.
+// Tell the client we are sending them plain text.
+//
+// You will need to change this if you are sending something
+// other than plain text, like JSON or HTML.
+//  
 
 
-  // Make sure to always call response.end() - Node may not send
-  // anything back to the client until you do. The string you pass to
-  // response.end() will be the body of the response - i.e. what shows
-  // up in the browser.
-  //
-  // Calling .end "flushes" the response's internal buffer, forcing
-  // node to actually send all the data over to the client.
+
+// .writeHead() writes to the request line and headers of the response,
+// which includes the status and all headers.
+
+
+// Make sure to always call response.end() - Node may not send
+// anything back to the client until you do. The string you pass to
+// response.end() will be the body of the response - i.e. what shows
+// up in the browser.
+//
+// Calling .end "flushes" the response's internal buffer, forcing
+// node to actually send all the data over to the client.
 
 
  
